@@ -1,0 +1,108 @@
+<UserControl x:Class="SM3DiagTool.Views.LiveDataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Dane na zywo" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <!-- Controls -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="Skanuj PID-y" Command="{Binding ScanPidsCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Dodaj wszystkie" Command="{Binding AddAllPidsCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Start" Command="{Binding StartMonitoringCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Stop" Command="{Binding StopMonitoringCommand}"
+                    Style="{StaticResource DangerButton}"/>
+            <TextBlock Text="Odswiezanie (ms):" Foreground="#888888" VerticalAlignment="Center" Margin="16,0,4,0"/>
+            <TextBox Text="{Binding RefreshRate, UpdateSourceTrigger=PropertyChanged}"
+                     Width="60" Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4"/>
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888888"
+                   FontSize="12" Margin="4,0,0,8"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Available PIDs -->
+            <DockPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock DockPanel.Dock="Top" Text="Dostepne PID-y:" Foreground="#888888" Margin="0,0,0,4"/>
+                <ListBox ItemsSource="{Binding AvailablePids}" Background="#2D2D30"
+                         BorderBrush="#3E3E42" Foreground="#CCCCCC">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="2">
+                                <Button Content="+" Command="{Binding DataContext.AddPidCommand,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Background="#007ACC" Foreground="White" BorderThickness="0"
+                                    Width="24" Height="24" FontWeight="Bold" Cursor="Hand"/>
+                                <TextBlock Text="{Binding Name}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Unit, StringFormat=' ({0})'}" Foreground="#888888"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Live Data Display -->
+            <DataGrid Grid.Column="1" ItemsSource="{Binding LivePids}" AutoGenerateColumns="False"
+                      Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42"
+                      GridLinesVisibility="Horizontal" IsReadOnly="True"
+                      RowBackground="#2D2D30" AlternatingRowBackground="#252526">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Parametr" Binding="{Binding Name}" Width="200">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#4EC9B0"/>
+                                <Setter Property="Padding" Value="4"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Wartosc" Binding="{Binding FormattedValue}" Width="150">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#DCDCAA"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="14"/>
+                                <Setter Property="Padding" Value="4"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Min" Binding="{Binding MinValue}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#888888"/>
+                                <Setter Property="Padding" Value="4"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Max" Binding="{Binding MaxValue}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#888888"/>
+                                <Setter Property="Padding" Value="4"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Jednostka" Binding="{Binding Unit}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#888888"/>
+                                <Setter Property="Padding" Value="4"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</UserControl>

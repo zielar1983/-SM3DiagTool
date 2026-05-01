@@ -1,0 +1,90 @@
+<UserControl x:Class="SM3DiagTool.Views.CanLoggerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Logger CAN Bus" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <!-- Settings & Controls -->
+        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Text="Protokol:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding ProtocolOptions}" SelectedItem="{Binding SelectedProtocol}"
+                      Width="100" Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42" Margin="0,0,8,0"/>
+
+            <TextBlock Text="Predkosc:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding BaudRateOptions}" SelectedItem="{Binding BaudRate}"
+                      Width="100" Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42" Margin="0,0,8,0"/>
+
+            <CheckBox Content="Extended ID (29-bit)" IsChecked="{Binding ExtendedId}"
+                      Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+            <Button Content="Start" Command="{Binding StartCaptureCommand}" Style="{StaticResource ActionButton}"/>
+            <Button Content="Stop" Command="{Binding StopCaptureCommand}" Style="{StaticResource DangerButton}"/>
+            <Button Content="Wyczysc" Command="{Binding ClearMessagesCommand}" Style="{StaticResource ActionButton}"/>
+        </WrapPanel>
+
+        <!-- Send Frame -->
+        <GroupBox DockPanel.Dock="Top" Header="Wyslij ramke CAN" Foreground="#CCCCCC"
+                  BorderBrush="#3E3E42" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" Margin="4">
+                <TextBlock Text="ID:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding SendIdHex}" Width="80" Background="#2D2D30"
+                         Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4" Margin="0,0,8,0"/>
+                <TextBlock Text="Dane (hex):" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding SendDataHex}" Width="200" Background="#2D2D30"
+                         Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4" Margin="0,0,8,0"/>
+                <Button Content="Wyslij" Command="{Binding SendFrameCommand}" Style="{StaticResource ActionButton}"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- File logging & export -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,4">
+            <Button Content="Loguj do pliku" Command="{Binding StartFileLogCommand}" Style="{StaticResource ActionButton}"/>
+            <Button Content="Zatrzymaj logowanie" Command="{Binding StopFileLogCommand}" Style="{StaticResource DangerButton}"/>
+            <Button Content="Eksportuj" Command="{Binding ExportCommand}" Style="{StaticResource ActionButton}"/>
+            <TextBlock Text="{Binding MessageCount, StringFormat='Wiadomosci: {0}'}"
+                       Foreground="#888888" VerticalAlignment="Center" Margin="16,0,0,0"/>
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888888"
+                   FontSize="12" Margin="4,0,0,4"/>
+
+        <!-- CAN Messages -->
+        <DataGrid ItemsSource="{Binding Messages}" AutoGenerateColumns="False"
+                  Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42"
+                  GridLinesVisibility="None" IsReadOnly="True"
+                  RowBackground="#2D2D30" AlternatingRowBackground="#252526"
+                  FontFamily="Consolas" FontSize="12"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Czas" Binding="{Binding TimestampFormatted}" Width="110"/>
+                <DataGridTextColumn Header="Kier." Binding="{Binding Direction}" Width="40"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdHex}" Width="90">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#CE9178"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="DLC" Binding="{Binding DataLength}" Width="40"/>
+                <DataGridTextColumn Header="Dane" Binding="{Binding DataHex}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#4EC9B0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="ASCII" Binding="{Binding DataAscii}" Width="100">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#666666"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

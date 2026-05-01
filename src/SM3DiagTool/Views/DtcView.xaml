@@ -1,0 +1,71 @@
+<UserControl x:Class="SM3DiagTool.Views.DtcView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Kody bledow (DTC)" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <!-- Controls -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="Protokol:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox ItemsSource="{Binding Protocols}" SelectedItem="{Binding SelectedProtocol}"
+                      Width="120" Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42"/>
+            <Button Content="Odczytaj DTC" Command="{Binding ReadDtcsCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Kasuj DTC" Command="{Binding ClearDtcsCommand}"
+                    Style="{StaticResource DangerButton}"/>
+            <Button Content="Eksportuj" Command="{Binding ExportDtcsCommand}"
+                    Style="{StaticResource ActionButton}"/>
+        </StackPanel>
+
+        <!-- Status -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888888"
+                   FontSize="12" Margin="4,0,0,8"/>
+
+        <!-- DTC List -->
+        <DataGrid ItemsSource="{Binding Dtcs}" AutoGenerateColumns="False"
+                  Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42"
+                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                  RowBackground="#2D2D30" AlternatingRowBackground="#252526"
+                  IsReadOnly="True" SelectionMode="Single"
+                  ColumnHeaderStyle="{x:Null}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Kod" Binding="{Binding Code}" Width="100">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Foreground" Value="#CE9178"/>
+                            <Setter Property="Padding" Value="4"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#CCCCCC"/>
+                            <Setter Property="Padding" Value="4"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="120">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#DCDCAA"/>
+                            <Setter Property="Padding" Value="4"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Modul" Binding="{Binding Module}" Width="80">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#888888"/>
+                            <Setter Property="Padding" Value="4"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

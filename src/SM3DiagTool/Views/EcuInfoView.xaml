@@ -1,0 +1,106 @@
+<UserControl x:Class="SM3DiagTool.Views.EcuInfoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Informacje o ECU" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <!-- Controls -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Odczyt ECU (UDS)" Command="{Binding ReadInfoCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Odczyt VIN (OBD-II)" Command="{Binding ReadVinObdCommand}"
+                    Style="{StaticResource ActionButton}"/>
+            <Button Content="Skanuj ECU na magistrali" Command="{Binding ScanEcusCommand}"
+                    Style="{StaticResource ActionButton}"/>
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888888"
+                   FontSize="12" Margin="4,0,0,8"/>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- ECU Information -->
+                <GroupBox Header="Dane identyfikacyjne" Foreground="#CCCCCC" BorderBrush="#3E3E42" Margin="0,0,0,12">
+                    <Grid Margin="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="VIN:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Vin}" Foreground="#DCDCAA" FontWeight="Bold" FontSize="16" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Nazwa ECU:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding EcuName}" Foreground="#4EC9B0" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Producent:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Manufacturer}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Numer czesci:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PartNumber}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Numer seryjny:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SerialNumber}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Wersja oprogramowania:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SoftwareVersion}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Wersja hardware:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding HardwareVersion}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Kalibracja:" Foreground="#888888" Margin="0,4"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding CalibrationId}" Foreground="#CCCCCC" Margin="0,4"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Detected ECUs -->
+                <GroupBox Header="Wykryte ECU na magistrali CAN" Foreground="#CCCCCC" BorderBrush="#3E3E42">
+                    <DataGrid ItemsSource="{Binding DetectedEcus}" AutoGenerateColumns="False"
+                              Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42"
+                              IsReadOnly="True" MinHeight="100"
+                              RowBackground="#2D2D30" AlternatingRowBackground="#252526">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adres" Binding="{Binding DiagAddress, StringFormat='0x{0:X3}'}" Width="80">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#CE9178"/>
+                                        <Setter Property="Padding" Value="4"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Nazwa" Binding="{Binding EcuName}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#4EC9B0"/>
+                                        <Setter Property="Padding" Value="4"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Numer czesci" Binding="{Binding PartNumber}" Width="200">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#CCCCCC"/>
+                                        <Setter Property="Padding" Value="4"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

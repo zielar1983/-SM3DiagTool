@@ -1,0 +1,105 @@
+<Window x:Class="SM3DiagTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:SM3DiagTool.ViewModels"
+        Title="SM3 DiagTool - Scanmatik 3 Diagnostic Software"
+        Height="800" Width="1200"
+        MinHeight="600" MinWidth="900"
+        Background="#1E1E1E"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="180"/>
+        </Grid.RowDefinitions>
+
+        <!-- Left Navigation Panel -->
+        <Border Grid.Column="0" Grid.RowSpan="2" Background="#252526">
+            <DockPanel>
+                <!-- App Title -->
+                <StackPanel DockPanel.Dock="Top" Margin="12,16,12,8">
+                    <TextBlock Text="SM3 DiagTool" FontSize="20" FontWeight="Bold"
+                               Foreground="#007ACC" Margin="0,0,0,4"/>
+                    <TextBlock Text="Scanmatik 3" FontSize="12" Foreground="#888888"/>
+                    <Separator Margin="0,12,0,8" Background="#3E3E42"/>
+                </StackPanel>
+
+                <!-- Connection Status -->
+                <Border DockPanel.Dock="Top" Margin="8,0,8,8" Padding="10" CornerRadius="4">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#3E1E1E"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                    <Setter Property="Background" Value="#1E3E1E"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <TextBlock Text="{Binding StatusText}" Foreground="#CCCCCC" FontSize="11" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding ConnectionInfo}" Foreground="#888888" FontSize="10"
+                                   Margin="0,2,0,0" Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation Buttons -->
+                <StackPanel DockPanel.Dock="Top" Margin="8,4">
+                    <Button Content="Polaczenie" Command="{Binding ShowConnectionCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Kody bledow (DTC)" Command="{Binding ShowDtcCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Dane na zywo" Command="{Binding ShowLiveDataCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Logger CAN" Command="{Binding ShowCanLoggerCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Informacje ECU" Command="{Binding ShowEcuInfoCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Terminal UDS" Command="{Binding ShowUdsTerminalCommand}"
+                            Style="{StaticResource NavButton}"/>
+                </StackPanel>
+
+                <!-- Spacer -->
+                <Border DockPanel.Dock="Bottom"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" Grid.Row="0" Margin="0" Background="#1E1E1E">
+            <ContentControl Content="{Binding CurrentView}" Margin="16"/>
+        </Border>
+
+        <!-- Log Panel -->
+        <Border Grid.Column="1" Grid.Row="1" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="0,1,0,0">
+            <DockPanel Margin="8">
+                <TextBlock DockPanel.Dock="Top" Text="Log sesji" Foreground="#888888"
+                           FontSize="11" Margin="4,0,0,4"/>
+                <ListBox ItemsSource="{Binding LogEntries}" Background="#1E1E1E"
+                         BorderThickness="0" Foreground="#CCCCCC" FontFamily="Consolas" FontSize="11"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.CanContentScroll="True">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <Run Text="{Binding TimestampFormatted, Mode=OneWay}" Foreground="#666666"/>
+                                <Run Text=" "/>
+                                <Run Text="{Binding LevelText, Mode=OneWay}" Foreground="#888888"/>
+                                <Run Text=" "/>
+                                <Run Text="{Binding Message, Mode=OneWay}" Foreground="#CCCCCC"/>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

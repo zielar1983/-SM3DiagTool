@@ -1,0 +1,87 @@
+<UserControl x:Class="SM3DiagTool.Views.UdsTerminalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Terminal UDS / Diagnostyczny" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <!-- Channel Settings -->
+        <GroupBox DockPanel.Dock="Top" Header="Ustawienia kanalu" Foreground="#CCCCCC"
+                  BorderBrush="#3E3E42" Margin="0,0,0,8">
+            <WrapPanel Margin="4">
+                <TextBlock Text="Protokol:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <ComboBox ItemsSource="{Binding ProtocolOptions}" SelectedItem="{Binding SelectedProtocol}"
+                          Width="150" Background="#2D2D30" Foreground="#CCCCCC" BorderBrush="#3E3E42" Margin="0,0,12,0"/>
+
+                <TextBlock Text="TX ID:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding TxIdHex}" Width="60" Background="#2D2D30"
+                         Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4" Margin="0,0,12,0"/>
+
+                <TextBlock Text="RX ID:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding RxIdHex}" Width="60" Background="#2D2D30"
+                         Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4" Margin="0,0,12,0"/>
+
+                <TextBlock Text="Baud:" Foreground="#888888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                <TextBox Text="{Binding BaudRate}" Width="80" Background="#2D2D30"
+                         Foreground="#CCCCCC" BorderBrush="#3E3E42" Padding="4" Margin="0,0,12,0"/>
+
+                <Button Content="Otworz kanal" Command="{Binding OpenChannelCommand}" Style="{StaticResource ActionButton}"/>
+                <Button Content="Zamknij kanal" Command="{Binding CloseChannelCommand}" Style="{StaticResource DangerButton}"/>
+            </WrapPanel>
+        </GroupBox>
+
+        <!-- Preset Commands -->
+        <GroupBox DockPanel.Dock="Top" Header="Predefiniowane komendy" Foreground="#CCCCCC"
+                  BorderBrush="#3E3E42" Margin="0,0,0,8">
+            <ItemsControl ItemsSource="{Binding PresetCommands}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding}" Margin="2" Padding="6,3"
+                                FontSize="11" Background="#2D2D30" Foreground="#CCCCCC"
+                                BorderThickness="1" BorderBrush="#3E3E42" Cursor="Hand"
+                                Command="{Binding DataContext.UsePresetCommand,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </GroupBox>
+
+        <!-- Request Input -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" Content="Wyslij" Command="{Binding SendRequestCommand}"
+                    Style="{StaticResource ActionButton}" Width="80"/>
+            <Button DockPanel.Dock="Right" Content="Wyczysc" Command="{Binding ClearHistoryCommand}"
+                    Style="{StaticResource ActionButton}" Width="80"/>
+            <TextBox Text="{Binding RequestHex, UpdateSourceTrigger=PropertyChanged}"
+                     Background="#2D2D30" Foreground="#4EC9B0" BorderBrush="#3E3E42"
+                     FontFamily="Consolas" FontSize="14" Padding="8"
+                     VerticalContentAlignment="Center"/>
+        </DockPanel>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888888"
+                   FontSize="12" Margin="4,0,0,4"/>
+
+        <!-- Terminal History -->
+        <ListBox ItemsSource="{Binding History}" Background="#0C0C0C" BorderBrush="#3E3E42"
+                 FontFamily="Consolas" FontSize="12"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Margin="2,1">
+                        <Run Text="{Binding TimestampFormatted, Mode=OneWay}" Foreground="#666666"/>
+                        <Run Text=" ["/><Run Text="{Binding Direction, Mode=OneWay}" Foreground="#CE9178" FontWeight="Bold"/><Run Text="] "/>
+                        <Run Text="{Binding Data, Mode=OneWay}" Foreground="#4EC9B0"/>
+                    </TextBlock>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

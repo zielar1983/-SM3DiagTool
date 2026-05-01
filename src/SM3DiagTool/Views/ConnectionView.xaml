@@ -1,0 +1,76 @@
+<UserControl x:Class="SM3DiagTool.Views.ConnectionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="8">
+            <TextBlock Text="Polaczenie z SM3" FontSize="22" FontWeight="Bold"
+                       Foreground="#007ACC" Margin="0,0,0,16"/>
+
+            <!-- Scan Devices -->
+            <GroupBox Header="Wyszukiwanie urzadzen" Foreground="#CCCCCC" BorderBrush="#3E3E42" Margin="0,0,0,12">
+                <StackPanel Margin="8">
+                    <Button Content="Skanuj urzadzenia J2534" Command="{Binding ScanDevicesCommand}"
+                            Style="{StaticResource ActionButton}" HorizontalAlignment="Left"/>
+
+                    <TextBlock Text="Dostepne urzadzenia:" Foreground="#888888" Margin="0,12,0,4"/>
+                    <ListBox ItemsSource="{Binding AvailableDevices}"
+                             SelectedItem="{Binding SelectedDevice}"
+                             Background="#2D2D30" Foreground="#CCCCCC"
+                             BorderBrush="#3E3E42" MinHeight="60" MaxHeight="150">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                    <TextBlock Text="{Binding Vendor}" Foreground="#888888" FontSize="11"/>
+                                    <TextBlock Text="{Binding DllPath}" Foreground="#666666" FontSize="10"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="Polacz" Command="{Binding ConnectCommand}"
+                                Style="{StaticResource ActionButton}"/>
+                        <Button Content="Rozlacz" Command="{Binding DisconnectCommand}"
+                                Style="{StaticResource DangerButton}"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Connection Info -->
+            <GroupBox Header="Informacje o polaczeniu" Foreground="#CCCCCC" BorderBrush="#3E3E42"
+                      Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}}">
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Status:" Foreground="#888888" Margin="0,4"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ConnectionStatus}" Foreground="#4EC9B0" Margin="0,4" FontWeight="SemiBold"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Wersja firmware:" Foreground="#888888" Margin="0,4"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding FirmwareVersion}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Wersja DLL:" Foreground="#888888" Margin="0,4"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DllVersion}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Wersja API:" Foreground="#888888" Margin="0,4"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ApiVersion}" Foreground="#CCCCCC" Margin="0,4"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Napiecie akumulatora:" Foreground="#888888" Margin="0,4"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding BatteryVoltage}" Foreground="#DCDCAA" Margin="0,4" FontWeight="SemiBold"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
