@@ -95,6 +95,17 @@ public class IoControlViewModel : ObservableObject
 
     private async Task ActivateAsync()
     {
+        var confirm = System.Windows.MessageBox.Show(
+            "UWAGA!\\n\\n" +
+            "Aktywacja aktuatora moze miec natychmiastowy wplyw na pojazd.\\n" +
+            "Nie uzywaj tej funkcji podczas jazdy — tylko na postoju z zaciagnietym hamulcem.\\n\\n" +
+            "Czy na pewno chcesz aktywowac aktuator?",
+            "Potwierdzenie sterowania IO",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
         await ExecuteIoControl("Aktywacja", id =>
         {
             return (uds, io) =>
@@ -180,6 +191,18 @@ public class IoControlViewModel : ObservableObject
     private async Task StartRoutineAsync()
     {
         if (_device == null || SelectedRoutine == null) return;
+
+        var confirm = System.Windows.MessageBox.Show(
+            $"Uruchamianie procedury: {SelectedRoutine.Name}\n\n" +
+            "Procedury serwisowe moga wplywac na dzialanie ukladow bezpieczenstwa pojazdu " +
+            "(hamulce, kierownica, silnik).\n\n" +
+            "Upewnij sie, ze pojazd jest na postoju i warunki wykonania sa spelnione.\n\n" +
+            "Czy na pewno chcesz uruchomic te procedure?",
+            "Potwierdzenie procedury serwisowej",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (confirm != System.Windows.MessageBoxResult.Yes) return;
 
         try
         {

@@ -174,15 +174,26 @@ Aktywacja/dezaktywacja urzadzen wykonawczych (aktuatorow) z mozliwoscia zamrozen
 
 ## Wymagania systemowe
 
+### Oprogramowanie
 - **System operacyjny:** Windows 10/11 (x64)
-- **Framework:** .NET 8.0 SDK lub Runtime
-- **Interfejs:** Scanmatik 3 (SM3)
+- **Framework:** .NET 8.0 SDK (do budowania) lub .NET 8.0 Runtime (do uruchomienia)
+- **IDE (opcjonalnie):** Visual Studio 2022 (wersja 17.8+)
 - **Sterownik SM3:** Scanmatik J2534 Pass-Thru Driver (wersja 3.x lub nowsza)
   - Pobierz z: https://scanmatik.pro/pages/downloads
   - Sterownik rejestruje sie w `HKLM\SOFTWARE\PassThruSupport.04.04`
   - Obslugiwane firmware SM3: 3.0.x i nowsze
-- **Polaczenie:** USB (zalecane do flash) lub Wi-Fi
-- **Uprawnienia:** Wymagane uruchomienie jako **Administrator** (dostep do rejestru i sterownikow J2534)
+
+### Sprzet
+- **Interfejs:** Scanmatik 3 (SM3)
+- **Polaczenie:** USB 2.0/3.0 (zalecane do flash) lub Wi-Fi
+- **Port USB:** wolny port USB-A lub adapter USB-C
+- **Kabel OBD-II:** dostarczany z SM3
+
+### Uprawnienia systemowe
+- **Administrator:** wymagane uruchomienie jako Administrator (dostep do rejestru Windows i sterownikow J2534)
+- **Windows Defender / Antywirus:** aplikacja moze byc blednie rozpoznana jako zagrożenie ze wzgledu na bezposredni dostep do sterownikow. Jesli Windows Defender blokuje uruchomienie, dodaj folder aplikacji do wykluczeń:
+  - Ustawienia → Aktualizacja i zabezpieczenia → Zabezpieczenia Windows → Ochrona przed wirusami → Ustawienia → Wyklaczenia → Dodaj wyklaczenie → Folder
+- **Zapora sieciowa:** jesli uzywasz polaczenia Wi-Fi z SM3, upewnij sie ze zapora nie blokuje komunikacji na portach SM3
 
 ## Instalacja i uruchomienie
 
@@ -323,7 +334,59 @@ Aplikacja jest kompatybilna z pojazdami osobowymi obslugujacymi standard OBD-II 
 │       └── BoolToVisibilityConverter.cs
 └── docs/
     └── preview.html             # Podglad GUI (mockup HTML)
+tests/SM3DiagTool.Tests/
+├── SM3DiagTool.Tests.csproj     # Projekt testow (xUnit + Moq)
+├── SecurityManagerTests.cs      # Testy algorytmow Security Access
+├── KnownDtcCodesTests.cs        # Testy bazy kodow DTC
+└── PidDataTests.cs              # Testy parserow PID-ow OBD-II
 ```
+
+### 8 widokow GUI (MVVM)
+
+| Widok | ViewModel | Opis |
+|-------|-----------|------|
+| ConnectionView | ConnectionViewModel | Skanowanie urzadzen, polaczenie, firmware |
+| DtcView | DtcViewModel | Odczyt/kasowanie kodow bledow, eksport CSV |
+| LiveDataView | LiveDataViewModel | Monitorowanie PID-ow w czasie rzeczywistym |
+| CanLoggerView | CanLoggerViewModel | Przechwytywanie/wysylanie ramek CAN |
+| EcuInfoView | EcuInfoViewModel | VIN, identyfikacja ECU, skanowanie modulow |
+| UdsTerminalView | UdsTerminalViewModel | Bezposrednia komunikacja hex z ECU |
+| FlashView | FlashViewModel | Odczyt/zapis/kasowanie pamieci ECU |
+| IoControlView | IoControlViewModel | Sterowanie aktuatorami, procedury serwisowe |
+
+### Status implementacji protokolow
+
+| Protokol | Plik | Status |
+|----------|------|--------|
+| OBD-II (ISO 15031) | ObdII.cs | Kompletny — DTC, PID-y, VIN, kalibracja |
+| UDS (ISO 14229) | Uds.cs | Kompletny — sesje, DID, DTC, security, routine, transfer |
+| KWP2000 (ISO 14230) | Kwp2000.cs | Kompletny — K-Line i CAN, obie inicjalizacje |
+| CAN Bus | CanBus.cs | Kompletny — CAN 2.0, CAN-FD, surowe ramki |
+| DoIP (ISO 13400) | DoIP.cs | Kompletny — discovery, routing, UDS over ETH |
+| J1850 VPW | J1850.cs | Kompletny — 10400 baud (GM) |
+| J1850 PWM | J1850.cs | Kompletny — 41600 baud (Ford) |
+| ISO 9141 | Iso9141.cs | Kompletny — 5-baud init, passive listen |
+| Single Wire CAN | SingleWireCan.cs | Kompletny — GMLAN 33333/500000 baud |
+| Flash/Memory | FlashManager.cs | Kompletny — download, upload, erase, block transfer |
+| IO Control | IoControl.cs | Kompletny — 15 aktuatorow, freeze, reset |
+| Routine Control | IoControl.cs | Kompletny — 9 procedur serwisowych |
+| Security Access | SecurityManager.cs | Kompletny — 6 algorytmow + custom callback |
+
+## Testy jednostkowe
+
+Projekt zawiera testy jednostkowe dla kluczowych komponentow:
+
+```bash
+dotnet test SM3DiagTool.sln
+```
+
+| Plik testow | Co testuje |
+|-------------|-----------|
+| SecurityManagerTests.cs | 8 testow algorytmow seed-key (SimpleXOR, CRC32, VAG, BMW, Mercedes, Generic) |
+| KnownDtcCodesTests.cs | 7 testow bazy DTC (200+ kodow, kategorie P/C/B/U, format, opisy) |
+| PidDataTests.cs | 10 testow parserow PID (RPM, predkosc, temperatura, lambda, zuzycie paliwa) |
+
+Testy nie wymagaja podlaczonego SM3 — testuja logike obliczen i dane statyczne.
 
 ## Technologie
 

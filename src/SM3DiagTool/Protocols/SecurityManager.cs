@@ -90,7 +90,7 @@ public class SecurityManager
         catch { return false; }
     }
 
-    public byte[] CalculateKey(byte[] seed, AlgorithmType algorithm, byte level = 0x01)
+    public static byte[] CalculateKey(byte[] seed, AlgorithmType algorithm, byte level = 0x01)
     {
         return algorithm switch
         {

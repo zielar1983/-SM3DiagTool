@@ -119,6 +119,21 @@ public class FlashViewModel : ObservableObject
     private async Task WriteMemoryAsync()
     {
         if (_device == null) return;
+
+        var confirm = System.Windows.MessageBox.Show(
+            "UWAGA!\n\nZapis pamieci ECU moze trwale uszkodzic sterownik (brick).\n\n" +
+            "Upewnij sie, ze:\n" +
+            "- Akumulator pojazdu jest naladowany (min. 12.5V)\n" +
+            "- SM3 jest podlaczony przez USB (nie Wi-Fi)\n" +
+            "- Nie odlaczysz zasilania ani kabla podczas operacji\n" +
+            "- Masz backup oryginalnego oprogramowania\n\n" +
+            "Czy na pewno chcesz kontynuowac?",
+            "Potwierdzenie zapisu pamieci ECU",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
         IsRunning = true;
         Progress = 0;
         AddLog("Rozpoczynam zapis pamieci...");
@@ -165,6 +180,30 @@ public class FlashViewModel : ObservableObject
     private async Task EraseMemoryAsync()
     {
         if (_device == null) return;
+
+        var confirm = System.Windows.MessageBox.Show(
+            "KRYTYCZNE OSTRZEZENIE!\n\n" +
+            "Kasowanie pamieci ECU jest operacja NIEODWRACALNA.\n" +
+            "Sterownik moze stac sie NIEFUNKCJONALNY po tej operacji.\n\n" +
+            "Ta operacja jest przeznaczona wylacznie dla zaawansowanych uzytkownikow.\n\n" +
+            $"Adres: 0x{MemoryAddressHex}\nRozmiar: 0x{MemorySizeHex}\n\n" +
+            "Czy na pewno chcesz SKASOWAC pamiec ECU?",
+            "Potwierdzenie kasowania pamieci",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Stop);
+
+        if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
+        var confirmSecond = System.Windows.MessageBox.Show(
+            "DRUGIE POTWIERDZENIE\n\n" +
+            "Czy ABSOLUTNIE na pewno chcesz skasowac pamiec ECU?\n" +
+            "Ta operacja jest NIEODWRACALNA.",
+            "Ostatnie potwierdzenie",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Stop);
+
+        if (confirmSecond != System.Windows.MessageBoxResult.Yes) return;
+
         IsRunning = true;
         AddLog("Kasowanie pamieci...");
 
