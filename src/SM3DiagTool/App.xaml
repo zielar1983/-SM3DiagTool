@@ -28,6 +28,12 @@
         <DataTemplate DataType="{x:Type vm:UdsTerminalViewModel}">
             <views:UdsTerminalView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FlashViewModel}">
+            <views:FlashView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:IoControlViewModel}">
+            <views:IoControlView />
+        </DataTemplate>
 
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Padding" Value="16,10"/>

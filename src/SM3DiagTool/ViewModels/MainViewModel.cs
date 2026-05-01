@@ -47,6 +47,8 @@ public class MainViewModel : ObservableObject
     public CanLoggerViewModel CanLoggerVM { get; }
     public EcuInfoViewModel EcuInfoVM { get; }
     public UdsTerminalViewModel UdsTerminalVM { get; }
+    public FlashViewModel FlashVM { get; }
+    public IoControlViewModel IoControlVM { get; }
 
     public ObservableCollection<LogEntry> LogEntries { get; } = new();
 
@@ -56,6 +58,8 @@ public class MainViewModel : ObservableObject
     public ICommand ShowCanLoggerCommand { get; }
     public ICommand ShowEcuInfoCommand { get; }
     public ICommand ShowUdsTerminalCommand { get; }
+    public ICommand ShowFlashCommand { get; }
+    public ICommand ShowIoControlCommand { get; }
 
     public MainViewModel()
     {
@@ -77,6 +81,8 @@ public class MainViewModel : ObservableObject
         CanLoggerVM = new CanLoggerViewModel(_sessionLogger);
         EcuInfoVM = new EcuInfoViewModel(_sessionLogger);
         UdsTerminalVM = new UdsTerminalViewModel(_sessionLogger);
+        FlashVM = new FlashViewModel(_sessionLogger);
+        IoControlVM = new IoControlViewModel(_sessionLogger);
 
         ShowConnectionCommand = new RelayCommand(() => CurrentView = ConnectionVM);
         ShowDtcCommand = new RelayCommand(() => CurrentView = DtcVM);
@@ -84,6 +90,8 @@ public class MainViewModel : ObservableObject
         ShowCanLoggerCommand = new RelayCommand(() => CurrentView = CanLoggerVM);
         ShowEcuInfoCommand = new RelayCommand(() => CurrentView = EcuInfoVM);
         ShowUdsTerminalCommand = new RelayCommand(() => CurrentView = UdsTerminalVM);
+        ShowFlashCommand = new RelayCommand(() => CurrentView = FlashVM);
+        ShowIoControlCommand = new RelayCommand(() => CurrentView = IoControlVM);
 
         CurrentView = ConnectionVM;
     }
@@ -109,6 +117,8 @@ public class MainViewModel : ObservableObject
         CanLoggerVM.SetDevice(device, _api);
         EcuInfoVM.SetDevice(device, _api);
         UdsTerminalVM.SetDevice(device, _api);
+        FlashVM.SetDevice(device, _api);
+        IoControlVM.SetDevice(device, _api);
 
         _sessionLogger.LogInfo($"Polaczono z: {device.DeviceInfo.Name}");
     }
@@ -125,6 +135,8 @@ public class MainViewModel : ObservableObject
         CanLoggerVM.ClearDevice();
         EcuInfoVM.ClearDevice();
         UdsTerminalVM.ClearDevice();
+        FlashVM.ClearDevice();
+        IoControlVM.ClearDevice();
 
         _sessionLogger.LogInfo("Rozlaczono");
     }

@@ -66,6 +66,10 @@
                             Style="{StaticResource NavButton}"/>
                     <Button Content="Terminal UDS" Command="{Binding ShowUdsTerminalCommand}"
                             Style="{StaticResource NavButton}"/>
+                    <Button Content="Flash / Pamiec" Command="{Binding ShowFlashCommand}"
+                            Style="{StaticResource NavButton}"/>
+                    <Button Content="Sterowanie IO" Command="{Binding ShowIoControlCommand}"
+                            Style="{StaticResource NavButton}"/>
                 </StackPanel>
 
                 <!-- Spacer -->

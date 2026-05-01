@@ -1,0 +1,67 @@
+<UserControl x:Class="SM3DiagTool.Views.IoControlView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#1E1E1E">
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Top" Text="Sterowanie IO / Procedury" FontSize="22" FontWeight="Bold"
+                   Foreground="#007ACC" Margin="0,0,0,12"/>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="#888" FontSize="12" Margin="4,0,0,8"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- IO Control -->
+            <DockPanel Grid.Column="0" Margin="0,0,8,0">
+                <GroupBox DockPanel.Dock="Top" Header="Sterowanie urzadzeniami wykonawczymi"
+                          Foreground="#CCC" BorderBrush="#3E3E42" Margin="0,0,0,8">
+                    <StackPanel Margin="4">
+                        <TextBlock Text="Wybierz aktuator:" Foreground="#888" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding Actuators}" DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="Id" SelectedValue="{Binding SelectedActuatorId}"
+                                  Background="#2D2D30" Foreground="#CCC" BorderBrush="#3E3E42" Margin="0,0,0,8"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Wartosc (0-255):" Foreground="#888" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBox Text="{Binding ControlValue}" Width="60" Background="#2D2D30"
+                                     Foreground="#CCC" BorderBrush="#3E3E42" Padding="4"/>
+                        </StackPanel>
+
+                        <WrapPanel>
+                            <Button Content="Aktywuj" Command="{Binding ActivateCommand}" Style="{StaticResource ActionButton}"/>
+                            <Button Content="Dezaktywuj" Command="{Binding DeactivateCommand}" Style="{StaticResource DangerButton}"/>
+                            <Button Content="Zamroz" Command="{Binding FreezeCommand}" Style="{StaticResource ActionButton}"/>
+                            <Button Content="Reset do ECU" Command="{Binding ResetCommand}" Style="{StaticResource ActionButton}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <ListBox ItemsSource="{Binding ActivityLog}" Background="#0C0C0C" BorderBrush="#3E3E42"
+                         Foreground="#888" FontFamily="Consolas" FontSize="11"/>
+            </DockPanel>
+
+            <!-- Routine Control -->
+            <GroupBox Grid.Column="1" Header="Procedury serwisowe" Foreground="#CCC" BorderBrush="#3E3E42">
+                <DockPanel Margin="4">
+                    <TextBlock DockPanel.Dock="Top" Text="Wybierz procedure:" Foreground="#888" Margin="0,0,0,4"/>
+                    <ListBox DockPanel.Dock="Top" ItemsSource="{Binding Routines}"
+                             SelectedItem="{Binding SelectedRoutine}"
+                             DisplayMemberPath="DisplayName"
+                             Background="#2D2D30" Foreground="#CCC" BorderBrush="#3E3E42"
+                             MinHeight="200" MaxHeight="350" Margin="0,0,0,8"/>
+
+                    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                        <Button Content="Uruchom" Command="{Binding StartRoutineCommand}" Style="{StaticResource ActionButton}"/>
+                        <Button Content="Zatrzymaj" Command="{Binding StopRoutineCommand}" Style="{StaticResource DangerButton}"/>
+                        <Button Content="Wynik" Command="{Binding GetResultsCommand}" Style="{StaticResource ActionButton}"/>
+                    </WrapPanel>
+
+                    <Border/>
+                </DockPanel>
+            </GroupBox>
+        </Grid>
+    </DockPanel>
+</UserControl>
