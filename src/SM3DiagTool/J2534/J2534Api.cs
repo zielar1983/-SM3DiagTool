@@ -8,6 +8,7 @@ public sealed class J2534Api : IDisposable
 {
     private IntPtr _libraryHandle;
     private bool _disposed;
+    private readonly object _lock = new();
 
     private delegate int PassThruOpenDelegate(IntPtr name, out uint deviceId);
     private delegate int PassThruCloseDelegate(uint deviceId);
@@ -124,29 +125,32 @@ public sealed class J2534Api : IDisposable
 
     public void LoadLibrary(string dllPath)
     {
-        if (IsLoaded)
-            throw new J2534Exception("Library already loaded. Call Dispose() first.");
+        lock (_lock)
+        {
+            if (IsLoaded)
+                throw new J2534Exception("Library already loaded. Call Dispose() first.");
 
-        _libraryHandle = LoadLibrary(dllPath);
-        if (_libraryHandle == IntPtr.Zero)
-            throw new J2534Exception($"Failed to load J2534 DLL: {dllPath}. Error: {Marshal.GetLastWin32Error()}");
+            _libraryHandle = LoadLibrary(dllPath);
+            if (_libraryHandle == IntPtr.Zero)
+                throw new J2534Exception($"Failed to load J2534 DLL: {dllPath}. Error: {Marshal.GetLastWin32Error()}");
 
-        LoadFunction("PassThruOpen", out _passThruOpen);
-        LoadFunction("PassThruClose", out _passThruClose);
-        LoadFunction("PassThruConnect", out _passThruConnect);
-        LoadFunction("PassThruDisconnect", out _passThruDisconnect);
-        LoadFunction("PassThruReadMsgs", out _passThruReadMsgs);
-        LoadFunction("PassThruWriteMsgs", out _passThruWriteMsgs);
-        LoadFunction("PassThruStartPeriodicMsg", out _passThruStartPeriodicMsg);
-        LoadFunction("PassThruStopPeriodicMsg", out _passThruStopPeriodicMsg);
-        LoadFunction("PassThruStartMsgFilter", out _passThruStartMsgFilter);
-        LoadFunction("PassThruStopMsgFilter", out _passThruStopMsgFilter);
-        LoadFunction("PassThruSetProgrammingVoltage", out _passThruSetProgrammingVoltage);
-        LoadFunction("PassThruReadVersion", out _passThruReadVersion);
-        LoadFunction("PassThruGetLastError", out _passThruGetLastError);
-        LoadFunction("PassThruIoctl", out _passThruIoctl);
+            LoadFunction("PassThruOpen", out _passThruOpen);
+            LoadFunction("PassThruClose", out _passThruClose);
+            LoadFunction("PassThruConnect", out _passThruConnect);
+            LoadFunction("PassThruDisconnect", out _passThruDisconnect);
+            LoadFunction("PassThruReadMsgs", out _passThruReadMsgs);
+            LoadFunction("PassThruWriteMsgs", out _passThruWriteMsgs);
+            LoadFunction("PassThruStartPeriodicMsg", out _passThruStartPeriodicMsg);
+            LoadFunction("PassThruStopPeriodicMsg", out _passThruStopPeriodicMsg);
+            LoadFunction("PassThruStartMsgFilter", out _passThruStartMsgFilter);
+            LoadFunction("PassThruStopMsgFilter", out _passThruStopMsgFilter);
+            LoadFunction("PassThruSetProgrammingVoltage", out _passThruSetProgrammingVoltage);
+            LoadFunction("PassThruReadVersion", out _passThruReadVersion);
+            LoadFunction("PassThruGetLastError", out _passThruGetLastError);
+            LoadFunction("PassThruIoctl", out _passThruIoctl);
 
-        Log.Information("J2534 DLL loaded: {DllPath}", dllPath);
+            Log.Information("J2534 DLL loaded: {DllPath}", dllPath);
+        }
     }
 
     private void LoadFunction<T>(string name, out T? func) where T : Delegate
@@ -157,219 +161,291 @@ public sealed class J2534Api : IDisposable
             Log.Warning("J2534 function not found: {Function}", name);
     }
 
+    private void EnsureDelegate<T>(T? func, string name) where T : Delegate
+    {
+        if (func == null)
+            throw new J2534Exception($"J2534 function '{name}' not available. DLL may not support this operation.");
+    }
+
     public uint Open(string? deviceName = null)
     {
-        EnsureLoaded();
-        var namePtr = deviceName != null ? Marshal.StringToHGlobalAnsi(deviceName) : IntPtr.Zero;
-        try
+        lock (_lock)
         {
-            var result = (J2534Error)_passThruOpen!(namePtr, out uint deviceId);
-            CheckResult(result, "PassThruOpen");
-            Log.Information("Device opened. DeviceID={DeviceId}", deviceId);
-            return deviceId;
-        }
-        finally
-        {
-            if (namePtr != IntPtr.Zero) Marshal.FreeHGlobal(namePtr);
+            EnsureLoaded();
+            EnsureDelegate(_passThruOpen, "PassThruOpen");
+            var namePtr = IntPtr.Zero;
+            try
+            {
+                namePtr = deviceName != null ? Marshal.StringToHGlobalAnsi(deviceName) : IntPtr.Zero;
+                var result = (J2534Error)_passThruOpen!(namePtr, out uint deviceId);
+                CheckResult(result, "PassThruOpen");
+                Log.Information("Device opened. DeviceID={DeviceId}", deviceId);
+                return deviceId;
+            }
+            finally
+            {
+                if (namePtr != IntPtr.Zero) Marshal.FreeHGlobal(namePtr);
+            }
         }
     }
 
     public void Close(uint deviceId)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruClose!(deviceId);
-        CheckResult(result, "PassThruClose");
-        Log.Information("Device closed. DeviceID={DeviceId}", deviceId);
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruClose, "PassThruClose");
+            var result = (J2534Error)_passThruClose!(deviceId);
+            CheckResult(result, "PassThruClose");
+            Log.Information("Device closed. DeviceID={DeviceId}", deviceId);
+        }
     }
 
     public uint Connect(uint deviceId, J2534Protocol protocol, J2534ConnectFlag flags, uint baudRate)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruConnect!(deviceId, (uint)protocol, (uint)flags, baudRate, out uint channelId);
-        CheckResult(result, "PassThruConnect");
-        Log.Information("Channel opened. ChannelID={ChannelId}, Protocol={Protocol}, BaudRate={BaudRate}",
-            channelId, protocol, baudRate);
-        return channelId;
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruConnect, "PassThruConnect");
+            var result = (J2534Error)_passThruConnect!(deviceId, (uint)protocol, (uint)flags, baudRate, out uint channelId);
+            CheckResult(result, "PassThruConnect");
+            Log.Information("Channel opened. ChannelID={ChannelId}, Protocol={Protocol}, BaudRate={BaudRate}",
+                channelId, protocol, baudRate);
+            return channelId;
+        }
     }
 
     public void Disconnect(uint channelId)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruDisconnect!(channelId);
-        CheckResult(result, "PassThruDisconnect");
-        Log.Information("Channel closed. ChannelID={ChannelId}", channelId);
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruDisconnect, "PassThruDisconnect");
+            var result = (J2534Error)_passThruDisconnect!(channelId);
+            CheckResult(result, "PassThruDisconnect");
+            Log.Information("Channel closed. ChannelID={ChannelId}", channelId);
+        }
     }
 
     public PassThruMsg[] ReadMsgs(uint channelId, uint numMsgs, uint timeout)
     {
-        EnsureLoaded();
-        var msgSize = Marshal.SizeOf<PassThruMsg>();
-        var bufferPtr = Marshal.AllocHGlobal(msgSize * (int)numMsgs);
-        try
+        lock (_lock)
         {
-            for (int i = 0; i < numMsgs; i++)
+            EnsureLoaded();
+            EnsureDelegate(_passThruReadMsgs, "PassThruReadMsgs");
+            var msgSize = Marshal.SizeOf<PassThruMsg>();
+            var bufferPtr = Marshal.AllocHGlobal(msgSize * (int)numMsgs);
+            try
             {
-                var msg = new PassThruMsg { Data = new byte[4128] };
-                Marshal.StructureToPtr(msg, bufferPtr + i * msgSize, false);
+                for (int i = 0; i < numMsgs; i++)
+                {
+                    var msg = new PassThruMsg { Data = new byte[4128] };
+                    Marshal.StructureToPtr(msg, bufferPtr + i * msgSize, false);
+                }
+
+                uint count = numMsgs;
+                var result = (J2534Error)_passThruReadMsgs!(channelId, bufferPtr, ref count, timeout);
+                if (result == J2534Error.ERR_BUFFER_EMPTY || result == J2534Error.ERR_TIMEOUT)
+                    return Array.Empty<PassThruMsg>();
+
+                CheckResult(result, "PassThruReadMsgs");
+
+                var messages = new PassThruMsg[count];
+                for (int i = 0; i < count; i++)
+                    messages[i] = Marshal.PtrToStructure<PassThruMsg>(bufferPtr + i * msgSize);
+
+                return messages;
             }
-
-            uint count = numMsgs;
-            var result = (J2534Error)_passThruReadMsgs!(channelId, bufferPtr, ref count, timeout);
-            if (result == J2534Error.ERR_BUFFER_EMPTY || result == J2534Error.ERR_TIMEOUT)
-                return Array.Empty<PassThruMsg>();
-
-            CheckResult(result, "PassThruReadMsgs");
-
-            var messages = new PassThruMsg[count];
-            for (int i = 0; i < count; i++)
-                messages[i] = Marshal.PtrToStructure<PassThruMsg>(bufferPtr + i * msgSize);
-
-            return messages;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(bufferPtr);
+            finally
+            {
+                Marshal.FreeHGlobal(bufferPtr);
+            }
         }
     }
 
     public void WriteMsgs(uint channelId, PassThruMsg[] msgs, uint timeout)
     {
-        EnsureLoaded();
-        var msgSize = Marshal.SizeOf<PassThruMsg>();
-        var bufferPtr = Marshal.AllocHGlobal(msgSize * msgs.Length);
-        try
+        lock (_lock)
         {
-            for (int i = 0; i < msgs.Length; i++)
-                Marshal.StructureToPtr(msgs[i], bufferPtr + i * msgSize, false);
+            EnsureLoaded();
+            EnsureDelegate(_passThruWriteMsgs, "PassThruWriteMsgs");
+            var msgSize = Marshal.SizeOf<PassThruMsg>();
+            var bufferPtr = Marshal.AllocHGlobal(msgSize * msgs.Length);
+            try
+            {
+                for (int i = 0; i < msgs.Length; i++)
+                    Marshal.StructureToPtr(msgs[i], bufferPtr + i * msgSize, false);
 
-            uint count = (uint)msgs.Length;
-            var result = (J2534Error)_passThruWriteMsgs!(channelId, bufferPtr, ref count, timeout);
-            CheckResult(result, "PassThruWriteMsgs");
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(bufferPtr);
+                uint count = (uint)msgs.Length;
+                var result = (J2534Error)_passThruWriteMsgs!(channelId, bufferPtr, ref count, timeout);
+                CheckResult(result, "PassThruWriteMsgs");
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(bufferPtr);
+            }
         }
     }
 
     public uint StartMsgFilter(uint channelId, J2534FilterType filterType,
         PassThruMsg? maskMsg, PassThruMsg? patternMsg, PassThruMsg? flowControlMsg)
     {
-        EnsureLoaded();
-        var maskPtr = AllocMsg(maskMsg);
-        var patternPtr = AllocMsg(patternMsg);
-        var flowPtr = AllocMsg(flowControlMsg);
-        try
+        lock (_lock)
         {
-            var result = (J2534Error)_passThruStartMsgFilter!(channelId, (uint)filterType,
-                maskPtr, patternPtr, flowPtr, out uint filterId);
-            CheckResult(result, "PassThruStartMsgFilter");
-            return filterId;
-        }
-        finally
-        {
-            FreeMsg(maskPtr);
-            FreeMsg(patternPtr);
-            FreeMsg(flowPtr);
+            EnsureLoaded();
+            EnsureDelegate(_passThruStartMsgFilter, "PassThruStartMsgFilter");
+            var maskPtr = IntPtr.Zero;
+            var patternPtr = IntPtr.Zero;
+            var flowPtr = IntPtr.Zero;
+            try
+            {
+                maskPtr = AllocMsg(maskMsg);
+                patternPtr = AllocMsg(patternMsg);
+                flowPtr = AllocMsg(flowControlMsg);
+                var result = (J2534Error)_passThruStartMsgFilter!(channelId, (uint)filterType,
+                    maskPtr, patternPtr, flowPtr, out uint filterId);
+                CheckResult(result, "PassThruStartMsgFilter");
+                return filterId;
+            }
+            finally
+            {
+                FreeMsg(maskPtr);
+                FreeMsg(patternPtr);
+                FreeMsg(flowPtr);
+            }
         }
     }
 
     public void StopMsgFilter(uint channelId, uint filterId)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruStopMsgFilter!(channelId, filterId);
-        CheckResult(result, "PassThruStopMsgFilter");
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruStopMsgFilter, "PassThruStopMsgFilter");
+            var result = (J2534Error)_passThruStopMsgFilter!(channelId, filterId);
+            CheckResult(result, "PassThruStopMsgFilter");
+        }
     }
 
     public uint StartPeriodicMsg(uint channelId, PassThruMsg msg, uint timeInterval)
     {
-        EnsureLoaded();
-        var msgPtr = AllocMsg(msg);
-        try
+        lock (_lock)
         {
-            var result = (J2534Error)_passThruStartPeriodicMsg!(channelId, msgPtr, out uint msgId, timeInterval);
-            CheckResult(result, "PassThruStartPeriodicMsg");
-            return msgId;
-        }
-        finally
-        {
-            FreeMsg(msgPtr);
+            EnsureLoaded();
+            EnsureDelegate(_passThruStartPeriodicMsg, "PassThruStartPeriodicMsg");
+            var msgPtr = IntPtr.Zero;
+            try
+            {
+                msgPtr = AllocMsg(msg);
+                var result = (J2534Error)_passThruStartPeriodicMsg!(channelId, msgPtr, out uint msgId, timeInterval);
+                CheckResult(result, "PassThruStartPeriodicMsg");
+                return msgId;
+            }
+            finally
+            {
+                FreeMsg(msgPtr);
+            }
         }
     }
 
     public void StopPeriodicMsg(uint channelId, uint msgId)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruStopPeriodicMsg!(channelId, msgId);
-        CheckResult(result, "PassThruStopPeriodicMsg");
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruStopPeriodicMsg, "PassThruStopPeriodicMsg");
+            var result = (J2534Error)_passThruStopPeriodicMsg!(channelId, msgId);
+            CheckResult(result, "PassThruStopPeriodicMsg");
+        }
     }
 
     public void SetProgrammingVoltage(uint deviceId, uint pinNumber, uint voltage)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruSetProgrammingVoltage!(deviceId, pinNumber, voltage);
-        CheckResult(result, "PassThruSetProgrammingVoltage");
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruSetProgrammingVoltage, "PassThruSetProgrammingVoltage");
+            var result = (J2534Error)_passThruSetProgrammingVoltage!(deviceId, pinNumber, voltage);
+            CheckResult(result, "PassThruSetProgrammingVoltage");
+        }
     }
 
     public (string firmware, string dll, string api) ReadVersion(uint deviceId)
     {
-        EnsureLoaded();
-        var fwPtr = Marshal.AllocHGlobal(80);
-        var dllPtr = Marshal.AllocHGlobal(80);
-        var apiPtr = Marshal.AllocHGlobal(80);
-        try
+        lock (_lock)
         {
-            var result = (J2534Error)_passThruReadVersion!(deviceId, fwPtr, dllPtr, apiPtr);
-            CheckResult(result, "PassThruReadVersion");
-            return (
-                Marshal.PtrToStringAnsi(fwPtr) ?? "",
-                Marshal.PtrToStringAnsi(dllPtr) ?? "",
-                Marshal.PtrToStringAnsi(apiPtr) ?? ""
-            );
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(fwPtr);
-            Marshal.FreeHGlobal(dllPtr);
-            Marshal.FreeHGlobal(apiPtr);
+            EnsureLoaded();
+            EnsureDelegate(_passThruReadVersion, "PassThruReadVersion");
+            var fwPtr = IntPtr.Zero;
+            var dllPtr = IntPtr.Zero;
+            var apiPtr = IntPtr.Zero;
+            try
+            {
+                fwPtr = Marshal.AllocHGlobal(80);
+                dllPtr = Marshal.AllocHGlobal(80);
+                apiPtr = Marshal.AllocHGlobal(80);
+                var result = (J2534Error)_passThruReadVersion!(deviceId, fwPtr, dllPtr, apiPtr);
+                CheckResult(result, "PassThruReadVersion");
+                return (
+                    Marshal.PtrToStringAnsi(fwPtr) ?? "",
+                    Marshal.PtrToStringAnsi(dllPtr) ?? "",
+                    Marshal.PtrToStringAnsi(apiPtr) ?? ""
+                );
+            }
+            finally
+            {
+                if (fwPtr != IntPtr.Zero) Marshal.FreeHGlobal(fwPtr);
+                if (dllPtr != IntPtr.Zero) Marshal.FreeHGlobal(dllPtr);
+                if (apiPtr != IntPtr.Zero) Marshal.FreeHGlobal(apiPtr);
+            }
         }
     }
 
     public string GetLastError()
     {
         if (!IsLoaded || _passThruGetLastError == null) return "Library not loaded";
-        var ptr = Marshal.AllocHGlobal(256);
+        var ptr = IntPtr.Zero;
         try
         {
+            ptr = Marshal.AllocHGlobal(256);
             _passThruGetLastError(ptr);
             return Marshal.PtrToStringAnsi(ptr) ?? "Unknown error";
         }
         finally
         {
-            Marshal.FreeHGlobal(ptr);
+            if (ptr != IntPtr.Zero) Marshal.FreeHGlobal(ptr);
         }
     }
 
     public void Ioctl(uint channelId, J2534Ioctl ioctlId, IntPtr input = default, IntPtr output = default)
     {
-        EnsureLoaded();
-        var result = (J2534Error)_passThruIoctl!(channelId, (uint)ioctlId, input, output);
-        CheckResult(result, $"PassThruIoctl({ioctlId})");
+        lock (_lock)
+        {
+            EnsureLoaded();
+            EnsureDelegate(_passThruIoctl, "PassThruIoctl");
+            var result = (J2534Error)_passThruIoctl!(channelId, (uint)ioctlId, input, output);
+            CheckResult(result, $"PassThruIoctl({ioctlId})");
+        }
     }
 
     public uint ReadBatteryVoltage(uint deviceId)
     {
-        EnsureLoaded();
-        var outputPtr = Marshal.AllocHGlobal(4);
-        try
+        lock (_lock)
         {
-            var result = (J2534Error)_passThruIoctl!(deviceId, (uint)J2534Ioctl.READ_VBATT, IntPtr.Zero, outputPtr);
-            CheckResult(result, "ReadBatteryVoltage");
-            return (uint)Marshal.ReadInt32(outputPtr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(outputPtr);
+            EnsureLoaded();
+            EnsureDelegate(_passThruIoctl, "PassThruIoctl");
+            var outputPtr = IntPtr.Zero;
+            try
+            {
+                outputPtr = Marshal.AllocHGlobal(4);
+                var result = (J2534Error)_passThruIoctl!(deviceId, (uint)J2534Ioctl.READ_VBATT, IntPtr.Zero, outputPtr);
+                CheckResult(result, "ReadBatteryVoltage");
+                return (uint)Marshal.ReadInt32(outputPtr);
+            }
+            finally
+            {
+                if (outputPtr != IntPtr.Zero) Marshal.FreeHGlobal(outputPtr);
+            }
         }
     }
 
@@ -390,43 +466,53 @@ public sealed class J2534Api : IDisposable
 
     public void SetConfig(uint channelId, J2534ConfigParameter parameter, uint value)
     {
-        EnsureLoaded();
-        var config = new SConfig { Parameter = (uint)parameter, Value = value };
-        var configPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfig>());
-        var listPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfigList>());
-        try
+        lock (_lock)
         {
-            Marshal.StructureToPtr(config, configPtr, false);
-            var configList = new SConfigList { NumOfParams = 1, ConfigPtr = configPtr };
-            Marshal.StructureToPtr(configList, listPtr, false);
-            Ioctl(channelId, J2534Ioctl.SET_CONFIG, listPtr);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(configPtr);
-            Marshal.FreeHGlobal(listPtr);
+            EnsureLoaded();
+            var config = new SConfig { Parameter = (uint)parameter, Value = value };
+            var configPtr = IntPtr.Zero;
+            var listPtr = IntPtr.Zero;
+            try
+            {
+                configPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfig>());
+                listPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfigList>());
+                Marshal.StructureToPtr(config, configPtr, false);
+                var configList = new SConfigList { NumOfParams = 1, ConfigPtr = configPtr };
+                Marshal.StructureToPtr(configList, listPtr, false);
+                Ioctl(channelId, J2534Ioctl.SET_CONFIG, listPtr);
+            }
+            finally
+            {
+                if (configPtr != IntPtr.Zero) Marshal.FreeHGlobal(configPtr);
+                if (listPtr != IntPtr.Zero) Marshal.FreeHGlobal(listPtr);
+            }
         }
     }
 
     public uint GetConfig(uint channelId, J2534ConfigParameter parameter)
     {
-        EnsureLoaded();
-        var config = new SConfig { Parameter = (uint)parameter, Value = 0 };
-        var configPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfig>());
-        var listPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfigList>());
-        try
+        lock (_lock)
         {
-            Marshal.StructureToPtr(config, configPtr, false);
-            var configList = new SConfigList { NumOfParams = 1, ConfigPtr = configPtr };
-            Marshal.StructureToPtr(configList, listPtr, false);
-            Ioctl(channelId, J2534Ioctl.GET_CONFIG, IntPtr.Zero, listPtr);
-            var resultConfig = Marshal.PtrToStructure<SConfig>(configPtr);
-            return resultConfig.Value;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(configPtr);
-            Marshal.FreeHGlobal(listPtr);
+            EnsureLoaded();
+            var config = new SConfig { Parameter = (uint)parameter, Value = 0 };
+            var configPtr = IntPtr.Zero;
+            var listPtr = IntPtr.Zero;
+            try
+            {
+                configPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfig>());
+                listPtr = Marshal.AllocHGlobal(Marshal.SizeOf<SConfigList>());
+                Marshal.StructureToPtr(config, configPtr, false);
+                var configList = new SConfigList { NumOfParams = 1, ConfigPtr = configPtr };
+                Marshal.StructureToPtr(configList, listPtr, false);
+                Ioctl(channelId, J2534Ioctl.GET_CONFIG, IntPtr.Zero, listPtr);
+                var resultConfig = Marshal.PtrToStructure<SConfig>(configPtr);
+                return resultConfig.Value;
+            }
+            finally
+            {
+                if (configPtr != IntPtr.Zero) Marshal.FreeHGlobal(configPtr);
+                if (listPtr != IntPtr.Zero) Marshal.FreeHGlobal(listPtr);
+            }
         }
     }
 
@@ -462,11 +548,14 @@ public sealed class J2534Api : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        if (_libraryHandle != IntPtr.Zero)
+        lock (_lock)
         {
-            FreeLibrary(_libraryHandle);
-            _libraryHandle = IntPtr.Zero;
+            if (_libraryHandle != IntPtr.Zero)
+            {
+                FreeLibrary(_libraryHandle);
+                _libraryHandle = IntPtr.Zero;
+            }
+            _disposed = true;
         }
-        _disposed = true;
     }
 }
